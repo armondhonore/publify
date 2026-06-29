@@ -1,7 +1,7 @@
 #!/bin/sh
 # Nexlayer entrypoint for Publify (Rails 7.1 / Puma).
-# Boots fast: a lightweight Ruby TCP probe (not a full Rails load) waits for the
-# DB, then runs migrations once and starts Puma bound to the pod IP.
+# Boots fast: a lightweight Ruby TCP probe waits for the DB, then runs
+# migrations once and starts Puma bound to the pod IP (no pidfile).
 
 DB_HOST="publify-postgres-service.pod"
 DB_PORT="5432"
@@ -21,6 +21,8 @@ done
 echo "[entrypoint] running db:prepare (non-fatal)"
 bundle exec rake db:prepare 2>&1 || echo "[entrypoint] db:prepare returned non-zero; continuing"
 
+# Puma needs its pid directory to exist; create it and run without a stale pid.
+mkdir -p tmp/pids
 rm -f tmp/pids/server.pid 2>/dev/null || true
 
 echo "[entrypoint] starting puma on 0.0.0.0:3000"
