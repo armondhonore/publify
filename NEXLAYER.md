@@ -15,7 +15,7 @@
 
 ## Project Summary
 <!-- nexlayer:section agent-managed=project_summary -->
-Publify is a long-standing Ruby on Rails web publishing and blogging platform that emphasizes IndieWeb principles and self-hosting.
+Publify is a classic Ruby on Rails blogging and publishing engine designed for the IndieWeb, supporting multi-user blogging, short messages, and custom themes.
 <!-- nexlayer:end -->
 
 ## Technology Stack
@@ -29,12 +29,11 @@ Publify is a long-standing Ruby on Rails web publishing and blogging platform th
 
 ## Repository Structure
 <!-- nexlayer:section agent-managed=structure_map -->
-- app/ — Rails application controllers, models, and views
-- config/ — Application configuration including database settings
+- app/ — Rails application logic (controllers, models, views)
+- config/ — Application and database configurations
 - db/ — Database migrations and schema
-- public/ — Static assets
-- themes/ — Custom website themes
-- lib/ — Extended libraries and custom logic
+- public/ — Static assets and compiled files
+- themes/ — Custom site themes
 <!-- nexlayer:end -->
 
 ## External Services Required
@@ -100,7 +99,7 @@ application:
   name: publify
   pods:
   - name: app
-    image: "registry.nexlayer.io/user_01kece1xyh817dwff7wnarhkxd/publify:19f157c765e"
+    image: "registry.nexlayer.io/user_01kece1xyh817dwff7wnarhkxd/publify:19f1589dd17"
     path: /
     servicePorts:
     - 3000
@@ -123,7 +122,6 @@ application:
       mountPath: /var/lib/postgresql/data
       size: 5Gi
 ```
-
 <!-- nexlayer:end -->
 
 ## Nexlayer Deployment Plan
@@ -150,7 +148,7 @@ application:
 
 ## Nexlayer Configuration
 <!-- nexlayer:section agent-managed=nexlayer_config -->
-**Last deployed:** 2026-06-29T22:31:59Z  
+**Last deployed:** 2026-06-29T22:46:43Z  
 **Live URL:** https://relaxed-weasel-publify.cloud.nexlayer.ai  
 **Runtime:**  · **Port:** auto-detected  
 **Deploy branch:** nexlayer  
@@ -160,7 +158,7 @@ application:
   name: publify
   pods:
   - name: app
-    image: "registry.nexlayer.io/user_01kece1xyh817dwff7wnarhkxd/publify:19f157c765e"
+    image: "registry.nexlayer.io/user_01kece1xyh817dwff7wnarhkxd/publify:19f1589dd17"
     path: /
     servicePorts:
     - 3000
@@ -189,6 +187,7 @@ application:
 <!-- nexlayer:section agent-managed=build_history -->
 | Date | Status | Notes |
 |------|--------|-------|
-| 2026-06-29T22:25:29Z | analyzed | initial repo analysis |
-| 2026-06-29T22:31:59Z | success | deployed https://relaxed-weasel-publify.cloud.nexlayer.ai |
+| 2026-06-29T22:40:07Z | analyzed | initial repo analysis |
+| 2026-06-29T22:46:43Z | success | deployed https://relaxed-weasel-publify.cloud.nexlayer.ai |
 <!-- nexlayer:end -->
+
