@@ -39,7 +39,7 @@ application:
   name: publify
   pods:
   - name: app
-    image: "registry.nexlayer.io/user_01kece1xyh817dwff7wnarhkxd/publify:9f1535e-fix2"
+    image: "registry.nexlayer.io/user_01kece1xyh817dwff7wnarhkxd/publify:9f154ae-fix7"
     path: /
     servicePorts:
     - 3000
