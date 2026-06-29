@@ -7,49 +7,44 @@ RUN apt-get update -qq && apt-get install -y \
     pkg-config \
     curl \
     git \
+    libpq-dev \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
-
-# Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
 
 WORKDIR /app
 
-# Copy the source
+# Copy source
 COPY . .
 
-# Robust resolution of the application root
-# Many Rails/Node hybrid apps are in a subdirectory. We move the contents of the folder containing package.json to root.
+# Flatten directory if app is in a subdirectory
+# We use a single RUN with a shell script to avoid Dockerfile syntax errors with 'fi'
 RUN if [ ! -f package.json ]; then \
     SUBDIR=$(find . -name package.json -exec dirname {} \; | head -n 1); \
     if [ -n "$SUBDIR" ]; then \
-        echo "Moving files from $SUBDIR to /app"; \
         cp -r $SUBDIR/. . ; \
     fi; \
     fi
 
-# Bundler and Gems - skip production group for installation to avoid deployment lock issues if Gemfile.lock is missing/outdated
-RUN gem install bundler:2.4.22 && \
-    bundle config set --local without 'production' && \
-    (bundle install || bundle lock && bundle install)
+# Install Bundler and Gems
+RUN gem install bundler && \
+    bundle config set --local deployment 'false' && \
+    bundle install --jobs 4 --retry 3
 
-# JS dependencies - ignore errors to prevent build crash, but attempt to install
-RUN if [ -f package.json ]; then npm install --legacy-peer-deps || npm install || true; fi
+# Install JS dependencies and build assets
+RUN if [ -f package.json ]; then \
+    npm install --legacy-peer-deps || npm install || true; \
+    npm run build --if-present || true; \
+    fi
 
-# Env vars for Next.js and Rails
-ENV NEXT_PUBLIC_APP_URL=https://placeholder.nexlayer.ai
-ENV NEXT_PUBLIC_API_URL=https://placeholder.nexlayer.ai
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV DISABLE_ESLINT_PLUGIN=true
-ENV TSC_COMPILE_ON_ERROR=true
-ENV RAILS_LOG_TO_STDOUT=true
-ENV RAILS_SERVE_STATIC_FILES=true
+# Environment Variables
 ENV RAILS_ENV=production
 ENV NODE_ENV=production
-
-# Build Next.js app if possible
-RUN if [ -f package.json ]; then npm run build --if-present || true; fi
+ENV RAILS_LOG_TO_STDOUT=true
+ENV RAILS_SERVE_STATIC_FILES=true
+ENV SECRET_KEY_BASE=placeholder_secret_key_for_boot
+ENV DATABASE_URL=postgresql://postgres:password@localhost/publify
 
 EXPOSE 3000
 
-# Try to start based on what exists: Rails first as it's the primary backend for Publify
 CMD ["sh", "-c", "bundle exec rails s -b 0.0.0.0 -p 3000 || ruby bin/rails s -b 0.0.0.0 -p 3000 || npm start"]"]
