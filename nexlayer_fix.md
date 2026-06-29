@@ -45,10 +45,6 @@ application:
       POSTGRES_DB: publify
       POSTGRES_USER: publify
       POSTGRES_PASSWORD: publify
-    volumes:
-    - name: publify-db
-      mountPath: /var/lib/postgresql/data
-      size: 5Gi
 ```
 
 ## Notes
