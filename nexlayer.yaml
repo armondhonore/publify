@@ -2,7 +2,7 @@ application:
   name: publify
   pods:
   - name: app
-    image: "# filled by pipeline"
+    image: "registry.nexlayer.io/user_01kece1xyh817dwff7wnarhkxd/publify:9f1529d-fix2"
     path: /
     servicePorts:
     - 3000
@@ -11,15 +11,15 @@ application:
       RAILS_SERVE_STATIC_FILES: "true"
       RAILS_LOG_TO_STDOUT: "true"
       SECRET_KEY_BASE: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
-      DATABASE_URL: "postgresql://publify:publify@publify-postgres-service.pod:5432/publify"
+      DATABASE_URL: "postgresql://publify:${POSTGRES_PASSWORD}@publify-postgres-service.pod:5432/publify"
   - name: publify-postgres-service
-    image: postgres:16-alpine
+    image: mirror.gcr.io/library/postgres:16-alpine
     servicePorts:
     - 5432
     vars:
       POSTGRES_DB: publify
       POSTGRES_USER: publify
-      POSTGRES_PASSWORD: publify
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
     volumes:
     - name: publify-db
       mountPath: /var/lib/postgresql/data

@@ -1,38 +1,41 @@
-# Publify (Rails 7.1) production image for Nexlayer
-FROM mirror.gcr.io/library/ruby:3.3-slim
+FROM mirror.gcr.io/library/ruby:3.3.0
 
-ENV RAILS_ENV=production \
-    BUNDLE_WITHOUT="development:test" \
-    RAILS_SERVE_STATIC_FILES=true \
-    RAILS_LOG_TO_STDOUT=true \
-    LANG=C.UTF-8
-
-# System deps: postgres client libs, image tooling, build toolchain, git, tzdata, tini
-RUN apt-get update -qq \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      build-essential libpq-dev libyaml-dev libffi-dev zlib1g-dev \
-      libvips42 imagemagick git curl tzdata tini \
- && rm -rf /var/lib/apt/lists/*
+# Install system dependencies for mysql2 and general build needs
+RUN apt-get update -qq && apt-get install -y \
+    build-essential \
+    default-libmysqlclient-dev \
+    pkg-config \
+    curl \
+    git
 
 WORKDIR /app
 
-# Copy the whole app (Gemfile.lock is gitignored upstream, so resolve fresh)
-COPY . /app
-
-# Production database config reads DATABASE_URL.
-RUN printf 'production:\n  adapter: postgresql\n  encoding: unicode\n  pool: 5\n  url: <%%= ENV["DATABASE_URL"] %%>\n' > config/database.yml
+# Copy Gemfile and Gemfile.lock
+# Using a wildcard for Gemfile.lock allows the build to proceed if it's missing,
+# but we must handle the 'deployment' mode requirement.
+COPY Gemfile Gemfile.lock* ./
 
 # Install gems
-RUN gem install bundler \
- && bundle config set --local without 'development test' \
- && bundle install --jobs 4 --retry 3
+RUN gem install bundler:4.0.15
 
-# Precompile assets (SECRET_KEY_BASE just needs to be present for this step).
-RUN SECRET_KEY_BASE=dummy_precompile_key DATABASE_URL="postgresql://u:p@localhost/db" bundle exec rake assets:precompile
+# The error "The deployment setting requires a lockfile" occurs because 
+# 'bundle config set deployment true' enforces the presence of Gemfile.lock.
+# If Gemfile.lock is missing from the repo, we must generate it or disable deployment mode.
+# We check for the existence of Gemfile.lock; if missing, we run bundle install without deployment mode
+# to generate the lockfile first.
+RUN if [ ! -f Gemfile.lock ]; then \
+        bundle install && bundle lock --add-platform x86_64-linux; \
+    else \
+        bundle config set --local deployment 'true' && \
+        bundle config set --local without 'development test' && \
+        bundle install; \
+    fi
 
-# Entrypoint script is committed in the repo and copied above; make it executable.
-RUN chmod +x /app/docker-entrypoint.sh
+# Copy the rest of the application
+COPY . .
 
+# Expose the default Rails port
 EXPOSE 3000
 
-ENTRYPOINT ["/usr/bin/tini", "-g", "--", "/app/docker-entrypoint.sh"]
+# Start the application
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
