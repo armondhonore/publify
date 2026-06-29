@@ -5,9 +5,18 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gem "rails", ["~> 7.1.5", ">= 7.1.5.2"]
 
-gem "mysql2"
+# PostgreSQL is the database used in the Nexlayer deployment.
 gem "pg"
-gem "sqlite3", "~> 2.9.4"
+
+# MySQL and SQLite adapters are optional; excluded from the production bundle
+# (Nexlayer deploys against PostgreSQL) so their native extensions don't need
+# system client libraries at build time.
+group :mysql do
+  gem "mysql2"
+end
+group :sqlite do
+  gem "sqlite3", "~> 2.9.4"
+end
 
 # Store sessions in the database
 gem "activerecord-session_store", "~> 2.2.0"

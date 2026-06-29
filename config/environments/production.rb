@@ -30,8 +30,8 @@ Rails.application.configure do
   # Compress CSS using a preprocessor.
   # config.assets.css_compressor = :sass
 
-  # Do not fall back to assets pipeline if a precompiled asset is missed.
-  config.assets.compile = false
+  # Fall back to the asset pipeline if a precompiled asset is missed (avoids 500s).
+  config.assets.compile = true
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
@@ -54,9 +54,10 @@ Rails.application.configure do
   # and secure cookies.
   # config.assume_ssl = true
 
-  # Force all access to the app over SSL, use Strict-Transport-Security, and
-  # use secure cookies.
-  config.force_ssl = true
+  # TLS is terminated at the Nexlayer edge; the pod is reached over plain HTTP,
+  # so do NOT force SSL at the app layer (would cause a redirect loop / 500 on
+  # the internal health probe).
+  config.force_ssl = false
 
   # Log to STDOUT by default
   config.logger = ActiveSupport::Logger.new($stdout)
